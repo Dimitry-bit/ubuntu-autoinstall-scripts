@@ -62,51 +62,52 @@ if %C_FREE_SPACE_MB% LSS %FREE_SPACE_THRESHOLD_MB% (
 
 if %IS_ERROR%==1 (
     echo �[31mFound 1 or more errors, exiting... �[0m
-    exit 1
-)
-
-REM Check if a machine with the given name already exists
-VBoxManage showvminfo "%MACHINE_NAME%" > nul 2>&1
-if %errorlevel%==0 (
-    echo Found "%MACHINE_NAME%".
 ) else (
-    echo Creating "%MACHINE_NAME%", "%MACHINE_DEST%\%MACHINE_NAME%".
+    REM Check if a machine with the given name already exists
+    VBoxManage showvminfo "%MACHINE_NAME%" > nul 2>&1
+    if %errorlevel%==0 (
+        echo Found "%MACHINE_NAME%".
+    ) else (
+        echo Creating "%MACHINE_NAME%", "%MACHINE_DEST%\%MACHINE_NAME%".
 
-    REM Create and register VM
-    VBoxManage createvm ^
-        --name "%MACHINE_NAME%" ^
-        --ostype Ubuntu_64 ^
-        --register ^
-        --basefolder "%MACHINE_DEST%"
+        REM Create and register VM
+        VBoxManage createvm ^
+            --name "%MACHINE_NAME%" ^
+            --ostype Ubuntu_64 ^
+            --register ^
+            --basefolder "%MACHINE_DEST%"
 
-    echo Creating Disk Controllers.
+        echo Creating Disk Controllers.
 
-    REM Create SATA controller
-    VBoxManage createhd --filename "%MACHINE_DEST%\%MACHINE_NAME%\%MACHINE_NAME%.vdi" --size %MACHINE_DISK_SIZE_MB% --format VDI
-    VBoxManage storagectl "%MACHINE_NAME%" --name "SATA Controller" --add sata --controller IntelAhci
-    VBoxManage storageattach "%MACHINE_NAME%" --storagectl "SATA Controller" --port 0 --device 0 --type hdd --medium "%MACHINE_DEST%\%MACHINE_NAME%\%MACHINE_NAME%.vdi"
+        REM Create SATA controller
+        VBoxManage createhd --filename "%MACHINE_DEST%\%MACHINE_NAME%\%MACHINE_NAME%.vdi" --size %MACHINE_DISK_SIZE_MB% --format VDI
+        VBoxManage storagectl "%MACHINE_NAME%" --name "SATA Controller" --add sata --controller IntelAhci
+        VBoxManage storageattach "%MACHINE_NAME%" --storagectl "SATA Controller" --port 0 --device 0 --type hdd --medium "%MACHINE_DEST%\%MACHINE_NAME%\%MACHINE_NAME%.vdi"
 
-    REM Create IDE controller
-    VBoxManage storagectl "%MACHINE_NAME%" --name "IDE Controller" --add ide --controller PIIX4
-    VBoxManage modifyvm "%MACHINE_NAME%" --boot1 dvd --boot2 disk --boot3 none --boot4 none
+        REM Create IDE controller
+        VBoxManage storagectl "%MACHINE_NAME%" --name "IDE Controller" --add ide --controller PIIX4
+        VBoxManage modifyvm "%MACHINE_NAME%" --boot1 dvd --boot2 disk --boot3 none --boot4 none
+    )
+
+    echo Configuring "%MACHINE_NAME%".
+
+    REM Configure CPU, Memory and VRAM
+    VBoxManage modifyvm "%MACHINE_NAME%" --ioapic on
+    VBoxManage modifyvm "%MACHINE_NAME%" --cpus %MACHINE_PHYSICAL_CORES%
+    VBoxManage modifyvm "%MACHINE_NAME%" --memory %MACHINE_RAM_MB% --vram 128
+
+    echo Starting unattended installation of "%MACHINE_NAME%".
+
+    REM Install OS with guest additions
+    REM NOTE: VBoxManager unattended configure parameters are ignored, Ubuntu does not use 'DebianInstallerPreseed'
+    VBoxManage unattended install "%MACHINE_NAME%" ^
+        --iso="%ISO_SRC%" ^
+        --additions-iso="%ADDITIONS_PATH%" ^
+        --extra-install-kernel-parameters="quiet autoinstall ds=nocloud\;s=/cdrom/desktop" ^
+        --install-additions ^
+        --start-vm=gui
+
+    echo Goodbye...
 )
 
-echo Configuring "%MACHINE_NAME%".
-
-REM Configure CPU, Memory and VRAM
-VBoxManage modifyvm "%MACHINE_NAME%" --ioapic on
-VBoxManage modifyvm "%MACHINE_NAME%" --cpus %MACHINE_PHYSICAL_CORES%
-VBoxManage modifyvm "%MACHINE_NAME%" --memory %MACHINE_RAM_MB% --vram 128
-
-echo Starting unattended installation of "%MACHINE_NAME%".
-
-REM Install OS with guest additions
-REM NOTE: VBoxManager unattended configure parameters are ignored, Ubuntu does not use 'DebianInstallerPreseed'
-VBoxManage unattended install "%MACHINE_NAME%" ^
-    --iso="%ISO_SRC%" ^
-    --additions-iso="%ADDITIONS_PATH%" ^
-    --extra-install-kernel-parameters="quiet autoinstall ds=nocloud\;s=/cdrom/desktop" ^
-    --install-additions ^
-    --start-vm=gui
-
-echo Goodbye...
+pause
