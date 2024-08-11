@@ -60,11 +60,12 @@ if %C_FREE_SPACE_MB% LSS %FREE_SPACE_THRESHOLD_MB% (
     echo [32m[PASS]: Found '%C_FREE_SPACE_MB% MB' free in C drive. REQUIRE: '%FREE_SPACE_THRESHOLD_MB% MB or more'. [0m
 )
 
+REM Check if a machine with the given name already exists
+VBoxManage showvminfo "%MACHINE_NAME%" > nul 2>&1
+
 if %IS_ERROR%==1 (
     echo [31mFound 1 or more errors, exiting... [0m
 ) else (
-    REM Check if a machine with the given name already exists
-    VBoxManage showvminfo "%MACHINE_NAME%" > nul 2>&1
     if %errorlevel%==0 (
         echo Found "%MACHINE_NAME%".
     ) else (
