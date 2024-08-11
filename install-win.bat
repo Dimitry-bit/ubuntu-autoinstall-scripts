@@ -32,36 +32,36 @@ echo Starting validation.
 
 REM Check for VirtualBox
 if "%VIRTUAL_BOX_SRC%"=="" (
-    echo �[31m[FAIL]: Failed to find VirtualBox installation. �[0m
+    echo [31m[FAIL]: Failed to find VirtualBox installation. [0m
     set IS_ERROR=1
 ) else (
-    echo �[32m[PASS]: Found VirtualBox installtion. '%VIRTUAL_BOX_SRC%' �[0m
+    echo [32m[PASS]: Found VirtualBox installtion. '%VIRTUAL_BOX_SRC%'. [0m
     set "PATH=%PATH%;%VIRTUAL_BOX_SRC%"
 )
 
 if %CPU_PHYSICAL_CORES% LSS %CPU_PHYSICAL_CORES_THRESHOLD% (
-    echo �[31m[FAIL]: CPU has less than '%CPU_PHYSICAL_CORES_THRESHOLD%' cores, cores:'%CPU_PHYSICAL_CORES%'.�[0m
+    echo [31m[FAIL]: CPU has less than '%CPU_PHYSICAL_CORES_THRESHOLD%' cores, cores:'%CPU_PHYSICAL_CORES%'. [0m
     set IS_ERROR=1
 ) else (
-    echo �[32m[PASS]: Found '%CPU_PHYSICAL_CORES%' cores. REQUIRE: '%CPU_PHYSICAL_CORES_THRESHOLD% or more' �[0m
+    echo [32m[PASS]: Found '%CPU_PHYSICAL_CORES%' cores. REQUIRE: '%CPU_PHYSICAL_CORES_THRESHOLD% or more'. [0m
 )
 
 if %RAM_SIZE_MB% LSS %RAM_THRESHOLD_MB% (
-    echo �[31m[FAIL]: Physical memory is less than '%RAM_THRESHOLD_MB% MB', memory:'%RAM_SIZE_MB% MB' �[0m
+    echo [31m[FAIL]: Physical memory is less than '%RAM_THRESHOLD_MB% MB', memory:'%RAM_SIZE_MB% MB'. [0m
     set IS_ERROR=1
 ) else (
-    echo �[32m[PASS]: Found '%RAM_SIZE_MB% MB'. REQUIRE: '%RAM_THRESHOLD_MB% MB or more' �[0m
+    echo [32m[PASS]: Found '%RAM_SIZE_MB% MB'. REQUIRE: '%RAM_THRESHOLD_MB% MB or more'. [0m
 )
 
 if %C_FREE_SPACE_MB% LSS %FREE_SPACE_THRESHOLD_MB% (
-    echo �[31m[FAIL]: C drive has less than '%FREE_SPACE_THRESHOLD_MB% MB' of free space, available:'%C_FREE_SPACE_MB% MB'. �[0m
+    echo [31m[FAIL]: C drive has less than '%FREE_SPACE_THRESHOLD_MB% MB' of free space, available:'%C_FREE_SPACE_MB% MB'. [0m
     set IS_ERROR=1
 ) else (
-    echo �[32m[PASS]: Found '%C_FREE_SPACE_MB% MB' free in C drive. REQUIRE: '%FREE_SPACE_THRESHOLD_MB% MB or more' �[0m
+    echo [32m[PASS]: Found '%C_FREE_SPACE_MB% MB' free in C drive. REQUIRE: '%FREE_SPACE_THRESHOLD_MB% MB or more'. [0m
 )
 
 if %IS_ERROR%==1 (
-    echo �[31mFound 1 or more errors, exiting... �[0m
+    echo [31mFound 1 or more errors, exiting... [0m
 ) else (
     REM Check if a machine with the given name already exists
     VBoxManage showvminfo "%MACHINE_NAME%" > nul 2>&1
