@@ -1,6 +1,8 @@
 @echo off
 setlocal enabledelayedexpansion
 
+set "SCRIPT_NAME=%~n0"
+
 rem Validation thresholds
 set /A RAM_THRESHOLD_MB=4096
 set /A CPU_PHYSICAL_CORES_THRESHOLD=4
@@ -70,7 +72,16 @@ if !errorlevel! neq 0 (
 ( echo %cmdcmdline% | findstr /l %comspec% >nul 2>&1 ) && pause
 exit /b 0
 
-exit /b %errorlevel%
+:help
+echo Usage: %SCRIPT_NAME% [OPTION]
+echo Installes an unattended Linux ISO.
+echo.
+echo Options:
+echo   --output DIRECTORY        set generated VM output path
+echo   --name   TEXT             set generated VM name
+echo   --iso    ISO_FILE         set unattended installation iso
+echo   --help                    display help text and exit
+goto :eof
 
 :log
 setlocal
