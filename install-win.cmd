@@ -5,7 +5,6 @@ rem Validation thresholds
 set /A RAM_THRESHOLD_MB=4096
 set /A CPU_PHYSICAL_CORES_THRESHOLD=4
 set /A FREE_SPACE_THRESHOLD_MB=40960
-set /A error=0
 
 rem Installation conf variables
 set "VIRTUAL_BOX_SRC=%VBOX_MSI_INSTALL_PATH%"
@@ -17,57 +16,15 @@ set /A machine_physical_cores=2
 set /A machine_ram_mb=2096
 set /A machine_disk_size_mb=25000
 
-rem Retrieve the number of CPU cores using WMIC
-for /F "tokens=2 delims==" %%a in ('wmic cpu get NumberOfCores /value') do set CPU_PHYSICAL_CORES=%%a
+call :validate_specs
 
-rem Querying RAM size in bytes
-for /F "tokens=2 delims==" %%a in ('wmic ComputerSystem get TotalPhysicalMemory /value') do set RAM_SIZE_BYTES=%%a
-
-rem Get the free space of C drive in bytes using WMIC
-for /F "tokens=2 delims==" %%a in ('wmic logicaldisk where "DeviceID='C:'" get FreeSpace /value') do set C_FREE_SPACE_BYTES=%%a
-
-set /A RAM_SIZE_MB=%RAM_SIZE_BYTES:~0,-4% / (1049)
-set /A C_FREE_SPACE_MB=%C_FREE_SPACE_BYTES:~0,-4% / (1049)
-
-echo Starting validation.
-
-rem Check for VirtualBox
-if "%VIRTUAL_BOX_SRC%"=="" (
-    echo [31m[FAIL]: Failed to find VirtualBox installation. [0m
-    set error=1
+if !errorlevel! neq 0 (
+    call :log "Found 1 or more errors, exiting..." panic
 ) else (
-    echo [32m[PASS]: Found VirtualBox installtion. '%VIRTUAL_BOX_SRC%'. [0m
-    set "PATH=%PATH%;%VIRTUAL_BOX_SRC%"
-)
+    rem Check if a machine with the given name already exists
+    VBoxManage showvminfo "%MACHINE_NAME%" > nul 2>&1
 
-if %cpu_physical_cores% lss %CPU_PHYSICAL_CORES_THRESHOLD% (
-    echo [31m[FAIL]: CPU has less than '%CPU_PHYSICAL_CORES_THRESHOLD%' cores, cores:'%cpu_physical_cores%'. [0m
-    set error=1
-) else (
-    echo [32m[PASS]: Found '%cpu_physical_cores%' cores. REQUIRE: '%CPU_PHYSICAL_CORES_THRESHOLD% or more'. [0m
-)
-
-if %RAM_SIZE_MB% lss %RAM_THRESHOLD_MB% (
-    echo [31m[FAIL]: Physical memory is less than '%RAM_THRESHOLD_MB% MB', memory:'%RAM_SIZE_MB% MB'. [0m
-    set error=1
-) else (
-    echo [32m[PASS]: Found '%RAM_SIZE_MB% MB'. REQUIRE: '%RAM_THRESHOLD_MB% MB or more'. [0m
-)
-
-if %C_FREE_SPACE_MB% lss %FREE_SPACE_THRESHOLD_MB% (
-    echo [31m[FAIL]: C drive has less than '%FREE_SPACE_THRESHOLD_MB% MB' of free space, available:'%C_FREE_SPACE_MB% MB'. [0m
-    set error=1
-) else (
-    echo [32m[PASS]: Found '%C_FREE_SPACE_MB% MB' free in C drive. REQUIRE: '%FREE_SPACE_THRESHOLD_MB% MB or more'. [0m
-)
-
-rem Check if a machine with the given name already exists
-VBoxManage showvminfo "%MACHINE_NAME%" > nul 2>&1
-
-if %error% equ 1 (
-    echo [31mFound 1 or more errors, exiting... [0m
-) else (
-    if %errorlevel% equ 0 (
+    if !errorlevel! equ 0 (
         echo Found "%MACHINE_NAME%".
     ) else (
         echo Creating "%MACHINE_NAME%", "%machine_dest%\%MACHINE_NAME%".
@@ -108,8 +65,73 @@ if %error% equ 1 (
         --extra-install-kernel-parameters="quiet autoinstall ds=nocloud\;s=/cdrom/desktop" ^
         --install-additions ^
         --start-vm=gui
-
-    echo Goodbye...
 )
 
 pause
+exit /b %errorlevel%
+
+:log
+setlocal
+set msg=%~1
+if /I "%2"=="PASS" (
+    echo [32m pass: %msg% [0m
+) else if /I "%2"=="FAIL" (
+    echo [31merror: %msg% [0m
+) else if /I "%2"=="PANIC" (
+    echo [31mpanic: %msg% [0m
+) else (
+    echo %msg%
+)
+endlocal
+goto :eof
+
+:validate_specs
+setlocal
+set /a error=0
+
+echo Starting validation.
+
+rem Retrieve the number of CPU cores using WMIC
+for /F "tokens=2 delims==" %%a in ('wmic cpu get NumberOfCores /value') do set CPU_PHYSICAL_CORES=%%a
+
+rem Querying RAM size in bytes
+for /F "tokens=2 delims==" %%a in ('wmic ComputerSystem get TotalPhysicalMemory /value') do set RAM_SIZE_BYTES=%%a
+
+rem Get the free space of C drive in bytes using WMIC
+for /F "tokens=2 delims==" %%a in ('wmic logicaldisk where "DeviceID='C:'" get FreeSpace /value') do set C_FREE_SPACE_BYTES=%%a
+
+set /A RAM_SIZE_MB=%RAM_SIZE_BYTES:~0,-4% / (1049)
+set /A C_FREE_SPACE_MB=%C_FREE_SPACE_BYTES:~0,-4% / (1049)
+
+rem Check for VirtualBox
+if "%VIRTUAL_BOX_SRC%"=="" (
+    call :log "Failed to find VirtualBox installation." fail
+    set /a error=1
+) else (
+    call :log "Found VirtualBox installtion. '%VIRTUAL_BOX_SRC%'." pass
+    set "PATH=%PATH%;%VIRTUAL_BOX_SRC%"
+)
+
+if %cpu_physical_cores% lss %CPU_PHYSICAL_CORES_THRESHOLD% (
+    call :log "CPU has less than '%CPU_PHYSICAL_CORES_THRESHOLD%' cores, cores:'%cpu_physical_cores%'." fail
+    set /a error=1
+) else (
+    call :log "Found '%cpu_physical_cores%' cores. REQUIRE: '%CPU_PHYSICAL_CORES_THRESHOLD% or more'." pass
+)
+
+if %RAM_SIZE_MB% lss %RAM_THRESHOLD_MB% (
+    call :log "Physical memory is less than '%RAM_THRESHOLD_MB% MB', memory:'%RAM_SIZE_MB% MB'." fail
+    set /a error=1
+) else (
+    call :log "Found '%RAM_SIZE_MB% MB'. REQUIRE: '%RAM_THRESHOLD_MB% MB or more'." pass
+)
+
+if %C_FREE_SPACE_MB% lss %FREE_SPACE_THRESHOLD_MB% (
+    call :log "C drive has less than '%FREE_SPACE_THRESHOLD_MB% MB' of free space, available:'%C_FREE_SPACE_MB% MB'." fail
+    set /a error=1
+) else (
+    call :log "Found '%C_FREE_SPACE_MB% MB' free in C drive. REQUIRE: '%FREE_SPACE_THRESHOLD_MB% MB or more'." pass
+)
+
+exit /b !error!
+goto :eof
