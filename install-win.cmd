@@ -67,7 +67,9 @@ if !errorlevel! neq 0 (
         --start-vm=gui
 )
 
-pause
+( echo %cmdcmdline% | findstr /l %comspec% >nul 2>&1 ) && pause
+exit /b 0
+
 exit /b %errorlevel%
 
 :log
