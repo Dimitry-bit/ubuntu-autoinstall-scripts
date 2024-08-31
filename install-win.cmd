@@ -1,4 +1,5 @@
 @echo off
+setlocal enabledelayedexpansion
 
 rem Validation thresholds
 set /A RAM_THRESHOLD_MB=4096
