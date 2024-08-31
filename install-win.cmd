@@ -4,7 +4,7 @@ rem Validation thresholds
 set /A RAM_THRESHOLD_MB=4096
 set /A CPU_PHYSICAL_CORES_THRESHOLD=4
 set /A FREE_SPACE_THRESHOLD_MB=40960
-set error=0
+set /A error=0
 
 rem Installation conf variables
 set "VIRTUAL_BOX_SRC=%VBOX_MSI_INSTALL_PATH%"
@@ -17,7 +17,7 @@ set /A machine_ram_mb=2096
 set /A machine_disk_size_mb=25000
 
 rem Retrieve the number of CPU cores using WMIC
-for /F "tokens=2 delims==" %%a in ('wmic cpu get NumberOfCores /value') do set "CPU_PHYSICAL_CORES=%%a"
+for /F "tokens=2 delims==" %%a in ('wmic cpu get NumberOfCores /value') do set CPU_PHYSICAL_CORES=%%a
 
 rem Querying RAM size in bytes
 for /F "tokens=2 delims==" %%a in ('wmic ComputerSystem get TotalPhysicalMemory /value') do set RAM_SIZE_BYTES=%%a
@@ -63,10 +63,10 @@ if %C_FREE_SPACE_MB% lss %FREE_SPACE_THRESHOLD_MB% (
 rem Check if a machine with the given name already exists
 VBoxManage showvminfo "%MACHINE_NAME%" > nul 2>&1
 
-if %error%==1 (
+if %error% equ 1 (
     echo [31mFound 1 or more errors, exiting... [0m
 ) else (
-    if %errorlevel%==0 (
+    if %errorlevel% equ 0 (
         echo Found "%MACHINE_NAME%".
     ) else (
         echo Creating "%MACHINE_NAME%", "%machine_dest%\%MACHINE_NAME%".
