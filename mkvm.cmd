@@ -37,16 +37,21 @@ if !errorlevel! equ 0 (
             --register ^
             --basefolder "!machine_dest!"
 
-        echo Creating Disk Controllers.
+        if !errorlevel! equ 0 (
+            echo Creating Disk Controllers.
 
-        rem Create SATA controller
-        VBoxManage createhd --filename "!machine_dest!\!machine_name!\!machine_name!.vdi" --size %machine_disk_size_mb% --format VDI
-        VBoxManage storagectl "!machine_name!" --name "SATA Controller" --add sata --controller IntelAhci
-        VBoxManage storageattach "!machine_name!" --storagectl "SATA Controller" --port 0 --device 0 --type hdd --medium "!machine_dest!\!machine_name!\!machine_name!.vdi"
+            rem Create SATA controller
+            VBoxManage createhd --filename "!machine_dest!\!machine_name!\!machine_name!.vdi" --size %machine_disk_size_mb% --format VDI
+            VBoxManage storagectl "!machine_name!" --name "SATA Controller" --add sata --controller IntelAhci
+            VBoxManage storageattach "!machine_name!" --storagectl "SATA Controller" --port 0 --device 0 --type hdd --medium "!machine_dest!\!machine_name!\!machine_name!.vdi"
 
-        rem Create IDE controller
-        VBoxManage storagectl "!machine_name!" --name "IDE Controller" --add ide --controller PIIX4
-        VBoxManage modifyvm "!machine_name!" --boot1 dvd --boot2 disk --boot3 none --boot4 none
+            rem Create IDE controller
+            VBoxManage storagectl "!machine_name!" --name "IDE Controller" --add ide --controller PIIX4
+            VBoxManage modifyvm "!machine_name!" --boot1 dvd --boot2 disk --boot3 none --boot4 none
+        ) else (
+            call :log "failed to create VM '!machine_name!'" fail
+            goto :end
+        )
     )
 
     echo Configuring "!machine_name!".
@@ -68,6 +73,7 @@ if !errorlevel! equ 0 (
         --start-vm=gui
 )
 
+:end
 ( echo %cmdcmdline% | findstr /l %comspec% >nul 2>&1 ) && pause
 exit /b 0
 
