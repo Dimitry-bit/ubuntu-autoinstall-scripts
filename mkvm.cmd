@@ -10,7 +10,7 @@ set /A FREE_SPACE_THRESHOLD_MB=40960
 
 rem Installation conf variables
 set "VIRTUAL_BOX_SRC=%VBOX_MSI_INSTALL_PATH%"
-set "ADDITIONS_PATH=%VBOX_MSI_INSTALL_PATH%VBoxGuestAdditions.iso"
+set "ADDITIONS_PATH=%VIRTUAL_BOX_SRC%VBoxGuestAdditions.iso"
 set "machine_name=Ubuntu 24-04 (OSC)"
 set "machine_dest=%UserProfile%\VirtualBox VMs"
 set "iso_src=.\ubuntu-24.04-desktop-amd64-autoinstall.iso"
