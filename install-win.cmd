@@ -18,6 +18,8 @@ set /A machine_physical_cores=%CPU_PHYSICAL_CORES_THRESHOLD%
 set /A machine_ram_mb=%RAM_THRESHOLD_MB%
 set /A machine_disk_size_mb=25000
 
+call :ascii_art
+
 call :parse_arguments %* && call :validate_specs
 if !errorlevel! equ 0 (
     rem Check if a machine with the given name already exists
@@ -189,4 +191,23 @@ if /I "%HYPER_V_STATUS%"=="TRUE" (
 )
 
 exit /b !error!
+goto :eof
+
+:ascii_art
+echo.
+echo           ____         ,--.                   ____
+echo         ,'  , `.   ,--/  /^|                 ,'  , `.
+echo      ,-+-,.' _ ^|,---,': / '    ,---.     ,-+-,.' _ ^|
+echo   ,-+-. ;   , ^|^|:   : '/ /    /__./^|  ,-+-. ;   , ^|^|
+echo  ,--.'^|'   ^|  ;^|^|   '   ,,---.;  ; ^| ,--.'^|'   ^|  ;^|
+echo ^|   ^|  ,', ^|  ':'   ^|  //___/ \  ^| ^|^|   ^|  ,', ^|  ':
+echo ^|   ^| /  ^| ^|  ^|^|^|   ;  ;\   ;  \ ' ^|^|   ^| /  ^| ^|  ^|^|
+echo '   ^| :  ^| :  ^|,:   '   \\   \  \: ^|'   ^| :  ^| :  ^|,
+echo ;   . ^|  ; ^|--' ^|   ^|    ';   \  ' .;   . ^|  ; ^|--'
+echo ^|   : ^|  ^| ,    '   : ^|.  \\   \   '^|   : ^|  ^| ,
+echo ^|   : '  ^|/     ^|   ^| '_\.' \   `  ;^|   : '  ^|/
+echo ;   ^| ^|`-'      '   : ^|      :   \ ^|;   ^| ^|`-'
+echo ^|   ;/          ;   ^|,'       '---^" ^|   ;/
+echo '---'           '---'               '---'
+echo.
 goto :eof
