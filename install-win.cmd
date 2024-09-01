@@ -158,6 +158,9 @@ if "%VIRTUAL_BOX_SRC%"=="" (
 if %cpu_physical_cores% gtr %CPU_PHYSICAL_CORES_THRESHOLD% (
     set /a machine_physical_cores=%CPU_PHYSICAL_CORES_THRESHOLD%
     call :log "available CPU cores '%cpu_physical_cores% cores'; recommended '%CPU_PHYSICAL_CORES_THRESHOLD%+ cores'." pass
+) else if %cpu_physical_cores% leq 1 (
+    set /a error=1
+    call :log "available CPU cores '%cpu_physical_cores%' does not meet the recommended spec '%CPU_PHYSICAL_CORES_THRESHOLD%+ cores'." fail
 ) else (
     set /a machine_physical_cores=%cpu_physical_cores% / 2
     call :log "available CPU cores '%cpu_physical_cores%' does not meet the recommended spec '%CPU_PHYSICAL_CORES_THRESHOLD%+ cores', defaulting to '!machine_physical_cores! cores'." warn
