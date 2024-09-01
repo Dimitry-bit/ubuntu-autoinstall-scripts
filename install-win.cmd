@@ -128,6 +128,9 @@ set /a error=0
 
 echo Starting validation.
 
+rem Querying Hyper-V status
+for /F "tokens=2 delims==" %%a in ('wmic cpu get VirtualizationFirmwareEnabled /value') do set "HYPER_V_STATUS=%%a"
+
 rem Retrieve the number of CPU cores using WMIC
 for /F "tokens=2 delims==" %%a in ('wmic cpu get NumberOfCores /value') do set CPU_PHYSICAL_CORES=%%a
 
@@ -173,6 +176,13 @@ if %DEST_FREE_SPACE_MB% lss %FREE_SPACE_THRESHOLD_MB% (
     set /a error=1
 ) else (
     call :log "available free space in %dest_drive_letter% drive '%DEST_FREE_SPACE_MB% MB'; require '%FREE_SPACE_THRESHOLD_MB% MB'." pass
+)
+
+if /I "%HYPER_V_STATUS%"=="TRUE" (
+   call :log "Hyper-V is enabled." pass
+) else (
+   set /a error=1
+   call :log "Hyper-V is not enabled in bios." fail
 )
 
 exit /b !error!
