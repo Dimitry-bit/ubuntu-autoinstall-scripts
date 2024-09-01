@@ -169,10 +169,10 @@ if %RAM_SIZE_MB% gtr %RAM_THRESHOLD_MB% (
 )
 
 if %DEST_FREE_SPACE_MB% lss %FREE_SPACE_THRESHOLD_MB% (
-    call :log "%dest_drive_letter% drive has less than '%FREE_SPACE_THRESHOLD_MB% MB' of free space, available:'%DEST_FREE_SPACE_MB% MB'." fail
+    call :log "insufficient disk space. Require '%FREE_SPACE_THRESHOLD_MB% MB'; available '%DEST_FREE_SPACE_MB% MB'." fail
     set /a error=1
 ) else (
-    call :log "Found '%DEST_FREE_SPACE_MB% MB' free in %dest_drive_letter% drive. REQUIRE: '%FREE_SPACE_THRESHOLD_MB% MB or more'." pass
+    call :log "available free space in %dest_drive_letter% drive '%DEST_FREE_SPACE_MB% MB'; require '%FREE_SPACE_THRESHOLD_MB% MB'." pass
 )
 
 exit /b !error!
