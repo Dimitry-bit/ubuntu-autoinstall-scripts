@@ -61,16 +61,20 @@ if !errorlevel! equ 0 (
     VBoxManage modifyvm "!machine_name!" --cpus !machine_physical_cores!
     VBoxManage modifyvm "!machine_name!" --memory !machine_ram_mb! --vram 128
 
-    echo Starting unattended installation of "!machine_name!".
+    if exist "!iso_src!" (
+        echo Starting unattended installation of "!machine_name!".
 
-    rem Install OS with guest additions
-    rem NOTE: VBoxManager unattended configure parameters are ignored, Ubuntu does not use 'DebianInstallerPreseed'
-    VBoxManage unattended install "!machine_name!" ^
-        --iso="!iso_src!" ^
-        --additions-iso="%ADDITIONS_PATH%" ^
-        --extra-install-kernel-parameters="quiet autoinstall ds=nocloud\;s=/cdrom/desktop" ^
-        --install-additions ^
-        --start-vm=gui
+        rem Install OS with guest additions
+        rem NOTE: VBoxManager unattended configure parameters are ignored, Ubuntu does not use 'DebianInstallerPreseed'
+        VBoxManage unattended install "!machine_name!" ^
+            --iso="!iso_src!" ^
+            --additions-iso="%ADDITIONS_PATH%" ^
+            --extra-install-kernel-parameters="quiet autoinstall ds=nocloud\;s=/cdrom/desktop" ^
+            --install-additions ^
+            --start-vm=gui
+    ) else (
+       call :log "no such file: '!iso_src!'" fail
+    )
 )
 
 :end
