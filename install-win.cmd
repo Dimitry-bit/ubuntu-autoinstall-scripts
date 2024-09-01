@@ -145,10 +145,10 @@ set /A DEST_FREE_SPACE_MB=%DEST_FREE_SPACE_BYTES:~0,-4% / (1049)
 
 rem Check for VirtualBox
 if "%VIRTUAL_BOX_SRC%"=="" (
-    call :log "Failed to find VirtualBox installation." fail
+    call :log "no VirtualBox installation found." fail
     set /a error=1
 ) else (
-    call :log "Found VirtualBox installtion. '%VIRTUAL_BOX_SRC%'." pass
+    call :log "found VirtualBox installtion. '%VIRTUAL_BOX_SRC%'." pass
     set "PATH=%PATH%;%VIRTUAL_BOX_SRC%"
 )
 
