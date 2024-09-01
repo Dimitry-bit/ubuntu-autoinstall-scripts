@@ -14,8 +14,8 @@ set "ADDITIONS_PATH=%VBOX_MSI_INSTALL_PATH%VBoxGuestAdditions.iso"
 set "machine_name=Ubuntu 24-04 (OSC)"
 set "machine_dest=%UserProfile%\VirtualBox VMs"
 set "iso_src=.\ubuntu-24.04-desktop-amd64-autoinstall.iso"
-set /A machine_physical_cores=2
-set /A machine_ram_mb=2096
+set /A machine_physical_cores=%CPU_PHYSICAL_CORES_THRESHOLD%
+set /A machine_ram_mb=%RAM_THRESHOLD_MB%
 set /A machine_disk_size_mb=25000
 
 call :parse_arguments %* && call :validate_specs
@@ -51,8 +51,8 @@ if !errorlevel! equ 0 (
 
     rem Configure CPU, Memory and VRAM
     VBoxManage modifyvm "!machine_name!" --ioapic on
-    VBoxManage modifyvm "!machine_name!" --cpus %machine_physical_cores%
-    VBoxManage modifyvm "!machine_name!" --memory %machine_ram_mb% --vram 128
+    VBoxManage modifyvm "!machine_name!" --cpus !machine_physical_cores!
+    VBoxManage modifyvm "!machine_name!" --memory !machine_ram_mb! --vram 128
 
     echo Starting unattended installation of "!machine_name!".
 
@@ -152,18 +152,20 @@ if "%VIRTUAL_BOX_SRC%"=="" (
     set "PATH=%PATH%;%VIRTUAL_BOX_SRC%"
 )
 
-if %cpu_physical_cores% lss %CPU_PHYSICAL_CORES_THRESHOLD% (
-    call :log "CPU has less than '%CPU_PHYSICAL_CORES_THRESHOLD%' cores, cores:'%cpu_physical_cores%'." fail
-    set /a error=1
+if %cpu_physical_cores% gtr %CPU_PHYSICAL_CORES_THRESHOLD% (
+    set /a machine_physical_cores=%CPU_PHYSICAL_CORES_THRESHOLD%
+    call :log "available CPU cores '%cpu_physical_cores% cores'; recommended '%CPU_PHYSICAL_CORES_THRESHOLD%+ cores'." pass
 ) else (
-    call :log "Found '%cpu_physical_cores%' cores. REQUIRE: '%CPU_PHYSICAL_CORES_THRESHOLD% or more'." pass
+    set /a machine_physical_cores=%cpu_physical_cores% / 2
+    call :log "available CPU cores '%cpu_physical_cores%' does not meet the recommended spec '%CPU_PHYSICAL_CORES_THRESHOLD%+ cores', defaulting to '!machine_physical_cores! cores'." warn
 )
 
-if %RAM_SIZE_MB% lss %RAM_THRESHOLD_MB% (
-    call :log "Physical memory is less than '%RAM_THRESHOLD_MB% MB', memory:'%RAM_SIZE_MB% MB'." fail
-    set /a error=1
+if %RAM_SIZE_MB% gtr %RAM_THRESHOLD_MB% (
+    set /a machine_ram_mb=%RAM_THRESHOLD_MB%
+    call :log "available memory '%RAM_SIZE_MB% MB'; recommended '%RAM_THRESHOLD_MB%+ MB'." pass
 ) else (
-    call :log "Found '%RAM_SIZE_MB% MB'. REQUIRE: '%RAM_THRESHOLD_MB% MB or more'." pass
+    set /a machine_ram_mb=%RAM_SIZE_MB% / 2
+    call :log "available memory '%RAM_SIZE_MB% MB' does not meet the recommended spec '%RAM_THRESHOLD_MB%+ MB', defaulting to '!machine_ram_mb! MB'." warn
 )
 
 if %DEST_FREE_SPACE_MB% lss %FREE_SPACE_THRESHOLD_MB% (
