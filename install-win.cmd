@@ -89,6 +89,8 @@ if /I "%2"=="PASS" (
     echo [31merror: %msg% [0m
 ) else if /I "%2"=="PANIC" (
     echo [31mpanic: %msg% [0m
+) else if /I "%2"=="WARN" (
+    echo [33m warn: %msg% [0m
 ) else (
     echo %msg%
 )
